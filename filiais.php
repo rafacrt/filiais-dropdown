@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: Filiais Dropdown
-Description: Exibe um menu dropdown com os endereços das filiais.
-Version: 1.0
-Author: Seu Nome
+Plugin Name: Filiais Dropdown com Mapa Locar
+Description: Exibe um menu dropdown com os endereços das filiais e um mapa do Google Maps.
+Version: 2.0
+Author: Rafael Medeiros
 */
 
 function filiais_dropdown_shortcode() {
@@ -28,25 +28,57 @@ function filiais_dropdown_shortcode() {
         <div id="filial-details" style="margin-top: 20px;"></div>
     </div>
 
-    <script>
-        function showDetails(filial) {
-            var details = {
-                "matriz": "<b>MATRIZ</b><br><i class='fa fa-map-marker'></i> Av. João Pedro Blumenthal, 300<br>Cumbica - Guarulhos - SP<br>CEP: 07224-150<br><i class='fa fa-phone'></i> ⁺55 11 3545-0500",
-                "espiritoSantoSerra": "<b>Espírito Santo - Serra</b><br><i class='fa fa-map-marker'></i> Rua Luciano Sathler, 249<br>Bairro: Nova Zelândia – Serra – ES<br>CEP: 29175-704<br><i class='fa fa-phone'></i> ⁺55 27 3398-7400",
-                "espiritoSantoSaoMateus": "<b>Espírito Santo - São Mateus</b><br><i class='fa fa-map-marker'></i> Rod. BR101 Norte, s/n – KM 60, sala 1<br>Bairro: Litorânea – São Mateus – ES<br>CEP: 29932-540<br><i class='fa fa-phone'></i> ⁺55 27 3771-2500",
-                "minasGerais": "<b>Minas Gerais</b><br><i class='fa fa-map-marker'></i> Rua Humberto de Moro, 380<br>Bairro: Inconfidentes – Contagem – MG<br>CEP: 32260-000<br><i class='fa fa-phone'></i> ⁺55 31 3364-4995<br>⁺55 31 3364-4838",
-                "bahia": "<b>Bahia</b><br><i class='fa fa-map-marker'></i> Rua dos Motoristas, s/n – sala 1 – set de Trans<br>Bairro: Copec – Camaçari – BA<br>CEP: 42816-050<br><i class='fa fa-phone'></i> ⁺55 71 3634-3700",
-                "pernambuco": "<b>Pernambuco</b><br><i class='fa fa-map-marker'></i> Rua Merendiba, 84<br>Bairro: Pontezinha – Cabo de Santo Agostinho – PE<br>CEP: 54589-050<br><i class='fa fa-phone'></i> ⁺55 81 3479-7800",
-                "sumareSP": "<b>Sumaré - SP</b><br><i class='fa fa-map-marker'></i> Rua Idalécio Rodrigues, 50<br>Bairro: Parque Florença – Sumaré – SP<br>CEP: 13177-451<br><i class='fa fa-phone'></i> ⁺55 19 3645-0474<br>⁺55 11 4810-4425",
-                "rioDeJaneiroParadaDeLucas": "<b>Rio de Janeiro - Parada de Lucas</b><br><i class='fa fa-map-marker'></i> Av. Brasil, 15295<br>Bairro: Parada de Lucas – Rio de Janeiro – RJ<br>CEP: 21241-051<br><i class='fa fa-phone'></i> ⁺55 21 3351-7404",
-                "rioDeJaneiroIlhaDoGovernador": "<b>Rio de Janeiro - Ilha do Governador</b><br><i class='fa fa-map-marker'></i> Praça Iaiá Garcia, 3<br>Bairro da Ribeira – Ilha do Governador – RJ<br>CEP: 21930-040<br><i class='fa fa-phone'></i> ⁺55 21 3386-5800",
-                "ribeiraoPreto": "<b>Ribeirão Preto</b><br><i class='fa fa-map-marker'></i> Via: Doutor Jeremias de Paula Martins, 306<br>Bairro: Jardim Zinato – Ribeirao Preto – SP<br>CEP: 14097-142<br><i class='fa fa-phone'></i> ⁺55 16 4042-0969",
-                "uberlandia": "<b>Uberlândia</b><br><i class='fa fa-map-marker'></i> Rua: Ignez Favato, 304<br>Bairro: Distrito Industrial – Uberlândia – MG<br>CEP: 38402-340<br><i class='fa fa-phone'></i> ⁺55 34 99725-1689",
-                "saoJoseDoRioPreto": "<b>São José do Rio Preto</b><br><i class='fa fa-map-marker'></i> Rua Goiania, 1590<br>Bairro: Nossa Senhora da Penha<br>CEP: 15043-140"
-            };
+    <div id="filiais-map" style="height: 700px;"></div>
 
-            document.getElementById("filial-details").innerHTML = details[filial] || "";
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD7yg24UmPDVMK1JtXJruBEVyFagb8zhgU"></script>
+    <script>
+        var map;
+        var filiais = {
+            // suas filiais aqui...
+        };
+        var infowindows = [];
+        var customIcon = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'; // URL do ícone de localização
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('filiais-map'), {
+                zoom: 5,
+                center: {lat: -23.46990, lng: -46.48286}
+            });
+
+            for (var filial in filiais) {
+                let marker = new google.maps.Marker({
+                    position: filiais[filial],
+                    map: map,
+                    icon: customIcon, // Usando o ícone de localização
+                    title: filial
+                });
+
+                let infowindow = new google.maps.InfoWindow({
+                    content: filiais[filial].info
+                });
+                infowindows.push(infowindow);
+
+                marker.addListener('click', function() {
+                    closeAllInfoWindows();
+                    infowindow.open(map, marker);
+                });
+            }
         }
+
+        function closeAllInfoWindows() {
+            for (let i = 0; i < infowindows.length; i++) {
+                infowindows[i].close();
+            }
+        }
+
+        function showDetails(filial) {
+            if (filiais[filial]) {
+                map.setCenter(filiais[filial]);
+                map.setZoom(15); // Aumente o valor aqui para um zoom mais próximo
+            }
+        }
+
+        google.maps.event.addDomListener(window, 'load', initMap);
     </script>
     <style>
         #filiais-dropdown select {
@@ -54,10 +86,30 @@ function filiais_dropdown_shortcode() {
             padding: 10px;
             margin-bottom: 10px;
         }
+        #filiais-map {
+            height: 700px; /* Altura ajustada para 700px */
+            margin-top: 20px;
+        }
+        .filial-info {
+            cursor: pointer;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        .filial-info:hover {
+            background-color: #e9e9e9;
+        }
     </style>
+    <script>
+        // Função para selecionar a filial no mapa ao clicar na div
+        function selectFilial(filial) {
+            showDetails(filial);
+            document.getElementById('filiais-select').value = filial;
+        }
+    </script>
     <?php
     return ob_get_clean();
 }
 
 add_shortcode('filiais_dropdown', 'filiais_dropdown_shortcode');
-?>
